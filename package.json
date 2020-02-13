@@ -15,7 +15,6 @@
     "csv-write-stream": "^2.0.0",
     "device-detector-js": "^2.2.1",
     "flat": "^5.0.0",
-    "geo-from-ip": "^2.0.0",
     "geoip-lite": "^1.4.0"
   }
 }
