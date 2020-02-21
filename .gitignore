@@ -1,3 +1,6 @@
 *.csv
 node_modules
 package-lock.json
+venv
+GeoLite2
+device_detector
