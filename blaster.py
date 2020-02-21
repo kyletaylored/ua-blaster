@@ -2,6 +2,9 @@ import codecs
 import csv
 import subprocess
 import geoip2.database
+import ray
+import json
+import numpy as np
 from progress.bar import Bar
 from device_detector import DeviceDetector
 from pprint import pprint
@@ -9,6 +12,25 @@ from pprint import pprint
 # This creates a Reader object. You should use the same object
 # across multiple requests as creation of it is expensive.
 geoip = geoip2.database.Reader('./GeoLite2/GeoLite2-City.mmdb')
+
+# Initialize ray
+ray.init()
+
+@ray.remote
+def fetch_row_data(row):
+    row = json.loads(row)
+    # Merge data into single record.
+    row.update(getDeviceData(row['request_user_agent']))
+    row.update(getIpData(row['ip']))
+    return row
+
+@ray.remote
+def write_row_data(writer, row):
+    # Add to file.
+    writer.writerow(row)
+    # Increment progress bar
+    bar.next()
+    return "written"
 
 # Extract GeoIP data
 def getIpData(ip):
@@ -22,6 +44,7 @@ def getIpData(ip):
     # response.location.latitude 44.9733
     # response.location.longitude -93.2323
     # response.traits.network IPv4Network('128.101.101.0/24')
+    split_ip = splitIp(ip)
 
     try:
         # Replace "city" with the method corresponding to the database
@@ -32,10 +55,11 @@ def getIpData(ip):
         "city": response.city.name,
         "country": response.country.iso_code,
         "latitude": response.location.latitude,
-        "longitude": response.location.longitude
+        "longitude": response.location.longitude,
+        "split_ip": split_ip
     }
     except:
-        data = {"city": "","country": "","latitude": "","longitude": ""}
+        data = {"city": "","country": "","latitude": "","longitude": "", "split_ip": split_ip}
 
     return data
 
@@ -55,6 +79,16 @@ def getDeviceData(ua):
 
     return data
 
+# Split IP address
+def splitIp(ip):
+    if (len(ip) > 39):
+        arr = ip.split(':')
+        txt = arr[0]+"."+arr[1]+":0000:0000:0000:0000:0000:0000"
+    else:
+        arr = ip.split('.')
+        txt = arr[0]+"."+arr[1]+".0.0"
+    return txt
+
 def line_count(filename):
     return int(subprocess.check_output('wc -l {}'.format(filename), shell=True).split()[0])
 
@@ -66,7 +100,7 @@ ENCODING = 'utf-8'
 
 # Get lines and create progress bar
 lc = line_count(IN_FILENAME)
-bar = Bar('Processing', max=lc, suffix = '%(percent).1f%% - %(eta)ds')
+bar = Bar('Processing', max=lc, suffix = '%(percent).1f%% / [%(index)/%(max)] / %(eta)ds')
 
 # Open CSVs for reading / writing
 with codecs.open(IN_FILENAME, "r", ENCODING) as rp:
@@ -86,17 +120,14 @@ with codecs.open(IN_FILENAME, "r", ENCODING) as rp:
         writer.writerow(headers)
 
         # Read rest of file
-        for row in reader:
-            
-            # Merge data into single record.
-            row.update(getDeviceData(row['request_user_agent']))
-            row.update(getIpData(row['ip']))
-
-            # Add to file.
-            writer.writerow(row)
-            
-            # Increment progress bar
-            bar.next()
+        for i, row in enumerate(reader):
+            # Pass data to multiprocessing threads
+            nrow = json.dumps(row)
+            row_data = fetch_row_data.remote(nrow)
+            write_row_data(writer, row_data)
+        
+        # Get the results.
+        # z = ray.get(z_id)
     
 geoip.close()
 bar.finish()
