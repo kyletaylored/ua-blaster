@@ -1,0 +1,1 @@
+start_time:STRING,request_user_agent:STRING,ip:STRING,url:STRING,client_type:STRING,client_name:STRING,client_version:STRING,client_engine:STRING,client_engineVersion:STRING,os_name:STRING,os_version:STRING,os_platform:STRING,device_type:STRING,device_brand:STRING,device_model:STRING,bot:STRING,city:STRING,metro:STRING,country:STRING,latitude:FLOAT,longitude:FLOAT
