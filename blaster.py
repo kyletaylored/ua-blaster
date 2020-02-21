@@ -22,6 +22,7 @@ def fetch_row_data(row):
     # Merge data into single record.
     row.update(getDeviceData(row['request_user_agent']))
     row.update(getIpData(row['ip']))
+    bar.next()
     return row
 
 @ray.remote
@@ -100,7 +101,7 @@ ENCODING = 'utf-8'
 
 # Get lines and create progress bar
 lc = line_count(IN_FILENAME)
-bar = Bar('Processing', max=lc, suffix = '%(percent).1f%% / [%(index)/%(max)] / %(eta)ds')
+bar = Bar('Processing', max=lc, suffix = '%(percent).1f%% | [%(index)d/%(max)d] | %(eta)ds')
 
 # Open CSVs for reading / writing
 with codecs.open(IN_FILENAME, "r", ENCODING) as rp:
