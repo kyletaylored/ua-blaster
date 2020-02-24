@@ -60,8 +60,8 @@ def line_count(filename):
 
 ### MAIN SCRIPT
 # Define file input/output
-IN_FILENAME = "bq-final.csv"
-OUT_FILENAME = "test.csv"
+IN_FILENAME = "02-20-2020-output.csv"
+OUT_FILENAME = "02-20-2020-complete.csv"
 ENCODING = 'utf-8'
 
 # Get lines and create progress bar

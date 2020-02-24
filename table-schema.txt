@@ -1,1 +1,5 @@
-start_time:STRING,request_user_agent:STRING,ip:STRING,url:STRING,client_type:STRING,client_name:STRING,client_version:STRING,client_engine:STRING,client_engineVersion:STRING,os_name:STRING,os_version:STRING,os_platform:STRING,device_type:STRING,device_brand:STRING,device_model:STRING,bot:STRING,city:STRING,metro:STRING,country:STRING,latitude:FLOAT,longitude:FLOAT
+timestamp:STRING,request_user_agent:STRING,ip:STRING,url:STRING,client_type:STRING,client_name:STRING,client_version:STRING,os_name:STRING,os_version:STRING,device_type:STRING,device_brand:STRING,device_model:STRING,city:STRING,country:STRING,latitude:FLOAT,longitude:FLOAT
+
+bq load --skip_leading_rows=1 fastly_bigquery.feb_20_2020_bots /Users/kyletaylor/server/scripts/ua-blaster/02-bots.csv timestamp:STRING,request_user_agent:STRING,ip:STRING,url:STRING,client_type:STRING,client_name:STRING,client_version:STRING,os_name:STRING,os_version:STRING,device_type:STRING,device_brand:STRING,device_model:STRING,city:STRING,country:STRING,latitude:FLOAT,longitude:FLOAT
+
+timestamp,request_user_agent,ip,url,city,country,latitude,longitude,device_brand,device_model,device_type,os_name,os_version,client_name,client_type,client_version
