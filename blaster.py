@@ -101,19 +101,7 @@ ENCODING = 'utf-8'
 
 # Get lines and create progress bar
 lc = line_count(IN_FILENAME)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
 bar = Bar('Processing', max=lc, suffix = '%(percent).1f%% | [%(index)d/%(max)d] | %(eta)ds')
-=======
-bar = Bar('Processing', max=lc, suffix = '%(percent).1f%% / [%(index)/%(max)] / %(eta)ds')
->>>>>>> Attempt using Ray
-=======
-bar = Bar('Processing', max=lc, suffix = '%(percent).1f%% | [%(index)d/%(max)d] | %(eta)ds')
->>>>>>> Fix processing text suffix
-=======
-bar = Bar('Processing', max=lc, suffix = '%(percent).1f%% | [%(index)d/%(max)d] | %(eta)ds')
->>>>>>> f3798244b627f66a478d07248c7856f8e7fc48e3
 
 # Open CSVs for reading / writing
 with codecs.open(IN_FILENAME, "r", ENCODING) as rp:
