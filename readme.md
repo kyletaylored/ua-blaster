@@ -29,7 +29,7 @@ Sign up / sign into Maxmind, download GeoIP 2 City database to `GeoLite2/GeoLite
 5. Configure input / output files (@todo). Run python script.
 
 ```
-python blaster.py
+python blaster.py --input 02-20-2020-output.csv
 ```
 
 ### Credits
