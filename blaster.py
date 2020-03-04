@@ -78,31 +78,44 @@ def splitIp(ip: str):
 
 # Get dataframe metadata
 def getMeta(df):
-    meta = list(df._meta.dtypes.to_dict().keys())
-    return dict(map( lambda x: (x, 'object'), meta))
+    meta = list(df.head(1).to_dict().keys())
+    return list_to_dict(meta)
+
+def list_to_dict(the_list):
+    return dict(map( lambda x: (x, 'object'), the_list))
 
 # Add GeoIP data to dataframe
-def processIpDataframe(df):
+def processIpDataframe(df, meta):
     cols = ["city","country","latitude","longitude"]
-    df[cols] = df.apply(lambda x: getIpData(x.ip), axis=1, result_type="expand", meta=getMeta(df)).compute()
+    df[cols] = df.apply(lambda x: getIpData(x.ip), axis=1, result_type="expand", meta=meta)
+    
+    meta.update(list_to_dict(cols))
+    return meta
 
 # Add split IP data to dataframe
-def processSplitIpDataframe(df):
-    df["split_ip"] = df.apply(lambda x: splitIp(x.ip), axis=1, meta=getMeta(df)).compute()
+def processSplitIpDataframe(df, meta):
+    cols = ["split_ip"]
+    df[cols] = df.apply(lambda x: splitIp(x.ip), axis=1, meta=meta)
+
+    meta.update(list_to_dict(cols))
+    return meta
 
 # Add device info to dataframe
-def processUserAgentDataframe(df):
+def processUserAgentDataframe(df, meta):
     cols = ["device_brand","device_model","device_type","os_name","os_version","client_name","client_type","client_version"]
-    df[cols] = df.apply(lambda x: getDeviceData(x.request_user_agent), axis=1, result_type="expand", meta=getMeta(df)).compute()
+    df[cols] = df.apply(lambda x: getDeviceData(x.request_user_agent), axis=1, result_type="expand", meta=meta)
+    
+    meta.update(list_to_dict(cols))
+    return meta
 
 # Process all dataframe processing functions.
 def process_df(df):
-    pbar.register()
-    processIpDataframe(df)
-    pbar.register()
-    processSplitIpDataframe(df)
-    pbar.register()
-    processUserAgentDataframe(df)
+    meta = getMeta(df)
+    meta = processIpDataframe(df, meta)
+    meta = processSplitIpDataframe(df, meta)
+    meta = processUserAgentDataframe(df, meta)
+    # Start computing.
+    df.compute()
 
 ### MAIN SCRIPT ###
 @click.command()
@@ -113,9 +126,11 @@ def main(input, output):
     IN_FILENAME = input
     OUT_FILENAME = output
 
+    # Create progress bar
+    pbar.register()
+
     # Get CSV file
     df_csv = dd.read_csv(IN_FILENAME)
-    df_csv = df_csv.repartition(npartitions=df_csv.npartitions // 100)
     process_df(df_csv)
     df_csv.to_csv(OUT_FILENAME, index=False)
     
