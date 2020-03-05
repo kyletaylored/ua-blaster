@@ -67,13 +67,16 @@ def getDeviceData(ua):
 
 # Split IP address
 def splitIp(ip: str):
-    ipc = IPAddress(ip)
-    if (ipc.version == 6):
-        arr = ip.split(':')
-        txt = arr[0]+":"+arr[1]+":0000:0000:0000:0000:0000:0000"
-    else:
-        arr = ip.split('.')
-        txt = arr[0]+"."+arr[1]+".0.0"
+    try:
+        ipc = IPAddress(ip)
+        if (ipc.version == 6):
+            arr = ip.split(':')
+            txt = arr[0]+":"+arr[1]+":0000:0000:0000:0000:0000:0000"
+        else:
+            arr = ip.split('.')
+            txt = arr[0]+"."+arr[1]+".0.0"
+    except:
+        txt = "x.x.x.x"
     return txt
 
 # Get dataframe metadata
@@ -84,38 +87,15 @@ def getMeta(df):
 def list_to_dict(the_list):
     return dict(map( lambda x: (x, 'object'), the_list))
 
-# Add GeoIP data to dataframe
-def processIpDataframe(df, meta):
-    cols = ["city","country","latitude","longitude"]
-    df[cols] = df.apply(lambda x: getIpData(x.ip), axis=1, result_type="expand", meta=meta)
-    
-    meta.update(list_to_dict(cols))
-    return meta
-
-# Add split IP data to dataframe
-def processSplitIpDataframe(df, meta):
-    cols = ["split_ip"]
-    df[cols] = df.apply(lambda x: splitIp(x.ip), axis=1, meta=meta)
-
-    meta.update(list_to_dict(cols))
-    return meta
-
-# Add device info to dataframe
-def processUserAgentDataframe(df, meta):
-    cols = ["device_brand","device_model","device_type","os_name","os_version","client_name","client_type","client_version"]
-    df[cols] = df.apply(lambda x: getDeviceData(x.request_user_agent), axis=1, result_type="expand", meta=meta)
-    
-    meta.update(list_to_dict(cols))
-    return meta
+def masterDataProcessing(ip, ua):
+    return getIpData(ip) + [splitIp(ip)] + getDeviceData(ua)
 
 # Process all dataframe processing functions.
 def process_df(df):
     meta = getMeta(df)
-    meta = processIpDataframe(df, meta)
-    meta = processSplitIpDataframe(df, meta)
-    meta = processUserAgentDataframe(df, meta)
+    cols = cols = ["city","country","latitude","longitude","split_ip","device_brand","device_model","device_type","os_name","os_version","client_name","client_type","client_version"]
     # Start computing.
-    df.compute()
+    df[cols] = df.apply(lambda x: masterDataProcessing(x.ip, x.request_user_agent), axis=1, result_type="expand", meta=meta).compute()
 
 ### MAIN SCRIPT ###
 @click.command()
