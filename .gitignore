@@ -4,3 +4,4 @@ package-lock.json
 venv
 GeoLite2
 device_detector
+.idea
