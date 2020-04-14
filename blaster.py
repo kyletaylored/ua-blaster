@@ -1,14 +1,13 @@
-#!/bin/python3
+#!/usr/bin/python3
 
 import click
-import subprocess
 import geoip2.database
 import time
 from dask.diagnostics import ProgressBar
 from device_detector import DeviceDetector
 import dask.dataframe as dd
 from netaddr import IPAddress
-from pprint import pprint # Debug support
+# from pprint import pprint # Debug support
 
 # This creates a Reader object. You should use the same object
 # across multiple requests as creation of it is expensive.
@@ -18,7 +17,7 @@ geoip = geoip2.database.Reader('./GeoLite2/GeoLite2-City.mmdb')
 pbar = ProgressBar()
 
 # Extract GeoIP data
-def getIpData(ip: str):
+def get_ip_data(ip: str):
 
     # response.country.iso_code 'US'
     # response.country.name 'United States'
@@ -49,7 +48,7 @@ def getIpData(ip: str):
     return data
 
 # Get user agent data
-def getDeviceData(ua):
+def get_device_data(ua):
     ua = str(ua)
     device = DeviceDetector(ua).parse()
     data = {
@@ -66,10 +65,10 @@ def getDeviceData(ua):
     return list(data.values())
 
 # Split IP address
-def splitIp(ip: str):
+def split_ip(ip: str):
     try:
         ipc = IPAddress(ip)
-        if (ipc.version == 6):
+        if ipc.version == 6:
             arr = ip.split(':')
             txt = arr[0]+":"+arr[1]+":0000:0000:0000:0000:0000:0000"
         else:
@@ -80,22 +79,22 @@ def splitIp(ip: str):
     return txt
 
 # Get dataframe metadata
-def getMeta(df):
+def get_metadata(df):
     meta = list(df.head(1).to_dict().keys())
     return list_to_dict(meta)
 
 def list_to_dict(the_list):
     return dict(map( lambda x: (x, 'object'), the_list))
 
-def masterDataProcessing(ip, ua):
-    return getIpData(ip) + [splitIp(ip)] + getDeviceData(ua)
+def master_data_processing(ip, ua):
+    return get_ip_data(ip) + [split_ip(ip)] + get_device_data(ua)
 
 # Process all dataframe processing functions.
 def process_df(df):
-    meta = getMeta(df)
+    meta = get_metadata(df)
     cols = cols = ["city","country","latitude","longitude","split_ip","device_brand","device_model","device_type","os_name","os_version","client_name","client_type","client_version"]
     # Start computing.
-    df[cols] = df.apply(lambda x: masterDataProcessing(x.ip, x.request_user_agent), axis=1, result_type="expand", meta=meta).compute()
+    df[cols] = df.apply(lambda x: master_data_processing(x.ip, x.request_user_agent), axis=1, result_type="expand", meta=meta).compute()
 
 ### MAIN SCRIPT ###
 @click.command()
