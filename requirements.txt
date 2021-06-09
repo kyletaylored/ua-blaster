@@ -2,7 +2,6 @@ astroid==2.3.3
 certifi==2019.11.28
 chardet==3.0.4
 Click==7.0
-device-detector==0.11
 geoip2==3.0.0
 idna==2.9
 isort==4.3.21

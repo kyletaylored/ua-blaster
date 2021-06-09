@@ -1,6 +1,7 @@
 import codecs
 import csv
 import subprocess
+import sys
 import geoip2.database
 from progress.bar import Bar
 from device_detector import DeviceDetector
@@ -60,8 +61,8 @@ def line_count(filename):
 
 ### MAIN SCRIPT
 # Define file input/output
-IN_FILENAME = "02-20-2020-output.csv"
-OUT_FILENAME = "02-20-2020-complete.csv"
+IN_FILENAME = sys.argv[1]
+OUT_FILENAME = sys.argv[2]
 ENCODING = 'utf-8'
 
 # Get lines and create progress bar
